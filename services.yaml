@@ -1,0 +1,66 @@
+#cat > ~/hadoop-k8s/03-services.yaml << 'EOF'
+apiVersion: v1
+kind: Service
+metadata:
+  name: hadoop-master
+  namespace: hadoop
+spec:
+  selector:
+    app: hadoop-master
+  clusterIP: None
+  ports:
+  - name: hdfs
+    port: 9000
+  - name: namenode-ui
+    port: 9870
+  - name: yarn-ui
+    port: 8088
+  - name: jobhistory
+    port: 19888
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hadoop-master-ui
+  namespace: hadoop
+spec:
+  selector:
+    app: hadoop-master
+  type: NodePort
+  ports:
+  - name: namenode-ui
+    port: 9870
+    nodePort: 30870
+  - name: yarn-ui
+    port: 8088
+    nodePort: 30088
+  - name: jobhistory
+    port: 19888
+    nodePort: 31988
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hadoop-slave01
+  namespace: hadoop
+spec:
+  selector:
+    app: hadoop-slave01
+  clusterIP: None
+  ports:
+  - name: datanode
+    port: 9866
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hadoop-slave02
+  namespace: hadoop
+spec:
+  selector:
+    app: hadoop-slave02
+  clusterIP: None
+  ports:
+  - name: datanode
+    port: 9866
+#EOF

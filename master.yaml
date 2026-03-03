@@ -1,0 +1,64 @@
+#cat > ~/hadoop-k8s/04-master.yaml << 'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hadoop-master
+  namespace: hadoop
+  labels:
+    app: hadoop-master
+spec:
+  hostname: hadoop-master
+  containers:
+  - name: hadoop
+    image: apache/hadoop:3
+    command:
+    - /bin/bash
+    - -c
+    - |
+      export HADOOP_HOME=/opt/hadoop
+      export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+
+      cp /config/core-site.xml $HADOOP_HOME/etc/hadoop/core-site.xml
+      cp /config/hdfs-site.xml $HADOOP_HOME/etc/hadoop/hdfs-site.xml
+      cp /config/mapred-site.xml $HADOOP_HOME/etc/hadoop/mapred-site.xml
+      cp /config/yarn-site.xml $HADOOP_HOME/etc/hadoop/yarn-site.xml
+      cp /config/workers $HADOOP_HOME/etc/hadoop/workers
+
+      mkdir -p /tmp/hadoopdata/hdfs/namenode /tmp/hadoopdata/tmp
+
+      if [ ! -f /tmp/hadoopdata/hdfs/namenode/current/VERSION ]; then
+        $HADOOP_HOME/bin/hdfs namenode -format -force
+      fi
+
+      $HADOOP_HOME/bin/hdfs --daemon start namenode
+      sleep 3
+      $HADOOP_HOME/bin/hdfs --daemon start secondarynamenode
+      sleep 2
+      $HADOOP_HOME/bin/yarn --daemon start resourcemanager
+      sleep 3
+      $HADOOP_HOME/bin/mapred --daemon start historyserver
+
+      echo ">>> Master started!"
+      ps aux | grep -E "NameNode|ResourceManager|JobHistory" | grep -v grep
+
+      tail -f /dev/null
+    ports:
+    - containerPort: 9000
+    - containerPort: 9870
+    - containerPort: 8088
+    - containerPort: 19888
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    volumeMounts:
+    - name: config
+      mountPath: /config
+  volumes:
+  - name: config
+    configMap:
+      name: hadoop-config
+#EOF
