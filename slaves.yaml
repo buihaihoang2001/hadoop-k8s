@@ -75,13 +75,13 @@ spec:
 
       echo ">>> Slave02 started!"
       tail -f /dev/null
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "500m"
-      limits:
-        memory: "1Gi"
-        cpu: "1000m"
+#    resources:
+#      requests:
+#        memory: "512Mi"
+#        cpu: "500m"
+#      limits:
+#        memory: "1Gi"
+#        cpu: "1000m"
     volumeMounts:
     - name: config
       mountPath: /config

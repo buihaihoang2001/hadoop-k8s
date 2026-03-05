@@ -47,13 +47,13 @@ spec:
     - containerPort: 9870
     - containerPort: 8088
     - containerPort: 19888
-    resources:
-      requests:
-        cpu: 500m
-        memory: 512Mi
-      limits:
-        cpu: 1000m
-        memory: 1Gi
+#    resources:
+#      requests:
+#        cpu: 500m
+#        memory: 512Mi
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
     volumeMounts:
     - name: config
       mountPath: /config

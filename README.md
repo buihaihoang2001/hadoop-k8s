@@ -212,4 +212,3 @@ kubectl apply -f .
 ```
 
 ---
-
