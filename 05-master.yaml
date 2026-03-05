@@ -1,4 +1,3 @@
-#cat > ~/hadoop-k8s/04-master.yaml << 'EOF'
 apiVersion: v1
 kind: Pod
 metadata:
@@ -8,6 +7,14 @@ metadata:
     app: hadoop-master
 spec:
   hostname: hadoop-master
+  restartPolicy: Always
+  initContainers:
+  - name: fix-permissions
+    image: busybox
+    command: ['sh', '-c', 'mkdir -p /data/hdfs/namenode && chown -R 1000:1000 /data/hdfs']
+    volumeMounts:
+    - name: namenode-storage
+      mountPath: /data/hdfs/namenode
   containers:
   - name: hadoop
     image: apache/hadoop:3
@@ -24,22 +31,33 @@ spec:
       cp /config/yarn-site.xml $HADOOP_HOME/etc/hadoop/yarn-site.xml
       cp /config/workers $HADOOP_HOME/etc/hadoop/workers
 
-      mkdir -p /tmp/hadoopdata/hdfs/namenode /tmp/hadoopdata/tmp
+      mkdir -p /tmp/hadoopdata /data/hdfs/namenode
 
-      if [ ! -f /tmp/hadoopdata/hdfs/namenode/current/VERSION ]; then
+      # Chỉ format nếu chưa có dữ liệu (lần đầu tiên)
+      if [ ! -f /data/hdfs/namenode/current/VERSION ]; then
+        echo ">>> First run: Formatting NameNode..."
         $HADOOP_HOME/bin/hdfs namenode -format -force
+      else
+        echo ">>> Data exists: Skipping format, reusing existing HDFS data"
       fi
 
+      echo ">>> Starting NameNode..."
       $HADOOP_HOME/bin/hdfs --daemon start namenode
       sleep 3
+
+      echo ">>> Starting SecondaryNameNode..."
       $HADOOP_HOME/bin/hdfs --daemon start secondarynamenode
       sleep 2
+
+      echo ">>> Starting ResourceManager..."
       $HADOOP_HOME/bin/yarn --daemon start resourcemanager
       sleep 3
+
+      echo ">>> Starting JobHistoryServer..."
       $HADOOP_HOME/bin/mapred --daemon start historyserver
 
-      echo ">>> Master started!"
-      ps aux | grep -E "NameNode|ResourceManager|JobHistory" | grep -v grep
+      echo ">>> All master services started!"
+      ps aux | grep -E "NameNode|ResourceManager|JobHistory|SecondaryNameNode" | grep -v grep
 
       tail -f /dev/null
     ports:
@@ -47,18 +65,15 @@ spec:
     - containerPort: 9870
     - containerPort: 8088
     - containerPort: 19888
-#    resources:
-#      requests:
-#        cpu: 500m
-#        memory: 512Mi
-#      limits:
-#        cpu: 1000m
-#        memory: 1Gi
     volumeMounts:
     - name: config
       mountPath: /config
+    - name: namenode-storage
+      mountPath: /data/hdfs/namenode
   volumes:
   - name: config
     configMap:
       name: hadoop-config
-#EOF
+  - name: namenode-storage
+    persistentVolumeClaim:
+      claimName: hadoop-namenode-pvc

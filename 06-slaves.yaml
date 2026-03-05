@@ -7,6 +7,14 @@ metadata:
     app: hadoop-slave01
 spec:
   hostname: hadoop-slave01
+  restartPolicy: Always
+  initContainers:
+  - name: fix-permissions
+    image: busybox
+    command: ['sh', '-c', 'mkdir -p /data/hdfs/datanode && chown -R 1000:1000 /data/hdfs']
+    volumeMounts:
+    - name: datanode-storage
+      mountPath: /data/hdfs/datanode
   containers:
   - name: hadoop
     image: apache/hadoop:3
@@ -21,28 +29,34 @@ spec:
       cp /config/hdfs-site.xml $HADOOP_HOME/etc/hadoop/hdfs-site.xml
       cp /config/yarn-site.xml $HADOOP_HOME/etc/hadoop/yarn-site.xml
 
-      mkdir -p /tmp/hadoopdata/hdfs/datanode
+      mkdir -p /data/hdfs/datanode
 
+      echo ">>> Waiting for NameNode to be ready..."
+      sleep 15
+
+      echo ">>> Starting DataNode..."
       $HADOOP_HOME/bin/hdfs --daemon start datanode
       sleep 2
+
+      echo ">>> Starting NodeManager..."
       $HADOOP_HOME/bin/yarn --daemon start nodemanager
 
       echo ">>> Slave01 started!"
+      ps aux | grep -E "DataNode|NodeManager" | grep -v grep
+
       tail -f /dev/null
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "500m"
-      limits:
-        memory: "1Gi"
-        cpu: "1000m"
     volumeMounts:
     - name: config
       mountPath: /config
+    - name: datanode-storage
+      mountPath: /data/hdfs/datanode
   volumes:
   - name: config
     configMap:
       name: hadoop-config
+  - name: datanode-storage
+    persistentVolumeClaim:
+      claimName: hadoop-datanode1-pvc
 ---
 apiVersion: v1
 kind: Pod
@@ -53,6 +67,14 @@ metadata:
     app: hadoop-slave02
 spec:
   hostname: hadoop-slave02
+  restartPolicy: Always
+  initContainers:
+  - name: fix-permissions
+    image: busybox
+    command: ['sh', '-c', 'mkdir -p /data/hdfs/datanode && chown -R 1000:1000 /data/hdfs']
+    volumeMounts:
+    - name: datanode-storage
+      mountPath: /data/hdfs/datanode
   containers:
   - name: hadoop
     image: apache/hadoop:3
@@ -67,26 +89,31 @@ spec:
       cp /config/hdfs-site.xml $HADOOP_HOME/etc/hadoop/hdfs-site.xml
       cp /config/yarn-site.xml $HADOOP_HOME/etc/hadoop/yarn-site.xml
 
-      mkdir -p /tmp/hadoopdata/hdfs/datanode
+      mkdir -p /data/hdfs/datanode
 
+      echo ">>> Waiting for NameNode to be ready..."
+      sleep 15
+
+      echo ">>> Starting DataNode..."
       $HADOOP_HOME/bin/hdfs --daemon start datanode
       sleep 2
+
+      echo ">>> Starting NodeManager..."
       $HADOOP_HOME/bin/yarn --daemon start nodemanager
 
       echo ">>> Slave02 started!"
+      ps aux | grep -E "DataNode|NodeManager" | grep -v grep
+
       tail -f /dev/null
-#    resources:
-#      requests:
-#        memory: "512Mi"
-#        cpu: "500m"
-#      limits:
-#        memory: "1Gi"
-#        cpu: "1000m"
     volumeMounts:
     - name: config
       mountPath: /config
+    - name: datanode-storage
+      mountPath: /data/hdfs/datanode
   volumes:
   - name: config
     configMap:
       name: hadoop-config
-#EOF
+  - name: datanode-storage
+    persistentVolumeClaim:
+      claimName: hadoop-datanode2-pvc

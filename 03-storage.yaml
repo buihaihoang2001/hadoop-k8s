@@ -1,0 +1,86 @@
+# PersistentVolume cho NameNode (master)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: hadoop-namenode-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /data/hadoop/namenode
+---
+# PersistentVolume cho DataNode slave01
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: hadoop-datanode1-pv
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /data/hadoop/datanode1
+---
+# PersistentVolume cho DataNode slave02
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: hadoop-datanode2-pv
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /data/hadoop/datanode2
+---
+# PVC cho NameNode
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hadoop-namenode-pvc
+  namespace: hadoop
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 5Gi
+---
+# PVC cho DataNode slave01
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hadoop-datanode1-pvc
+  namespace: hadoop
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 20Gi
+---
+# PVC cho DataNode slave02
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hadoop-datanode2-pvc
+  namespace: hadoop
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 20Gi
