@@ -1,0 +1,60 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>bank</groupId>
+  <artifactId>bank</artifactId>
+  <version>1.0</version>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <version>3.3.0</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+
+      <!-- JAR 1: BankDataExtraction -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>bank.DataExtractionDriver</mainClass>
+            </manifest>
+          </archive>
+          <finalName>BankDataExtraction</finalName>
+        </configuration>
+        <executions>
+          <!-- JAR 2: BankDataReport -->
+          <execution>
+            <id>report-jar</id>
+            <phase>package</phase>
+            <goals><goal>jar</goal></goals>
+            <configuration>
+              <archive>
+                <manifest>
+                  <mainClass>bank.ReportDriver</mainClass>
+                </manifest>
+              </archive>
+              <finalName>BankDataReport</finalName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
