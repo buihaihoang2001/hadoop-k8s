@@ -140,9 +140,8 @@ mvn clean package -DskipTests
 kubectl cp applications.csv hadoop/hadoop-master:/tmp/applications.csv
 
 # Copy 2 JAR
-kubectl cp target/BankDataExtraction.jar hadoop/hadoop-master:/tmp/BankDataExtraction.jar
-kubectl cp target/BankDataReport.jar hadoop/hadoop-master:/tmp/BankDataReport.jar
-```
+kubectl cp target/BankDataExtraction-extraction.jar hadoop/hadoop-master:/tmp/BankDataExtraction.jar
+kubectl cp target/BankDataReport-report.jar hadoop/hadoop-master:/tmp/BankDataReport.jar```
 
 ### Bước 3: Upload dữ liệu lên HDFS
 
